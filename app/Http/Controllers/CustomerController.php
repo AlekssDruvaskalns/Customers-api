@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -12,7 +13,40 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        return Customer::select('customer_id', 'first_name', 'last_name', 'gold_member', 'address', 'city', 'state', 'points')->get();
+        // return Customer::select('customer_id', 'first_name', 'last_name', 'gold_member', 'address', 'city', 'state', 'points')->get();
+        // $results = DB::table('customers')
+        // ->join('orders', 'customers.customer_id', '=', 'orders.customer_id')
+        // ->join('products', 'orders.product_id', '=', 'products.product_id')
+        // ->select('customers.first_name', 'orders.order_date', 'products.product_name')
+        // ->get();
+        // laravel query builder šitas ir
+
+        return Customer::all();
+
+        $orders = DB::select('SELECT
+          c.customer_id, 
+          c.first_name,
+          c.last_name,
+          c.address,
+          c.city,
+          c.state,
+          c.points,
+          o.order_date,
+          os.name
+        FROM
+            sql_store.customers c
+        JOIN
+            sql_store.orders o
+        JOIN
+            sql_store.order_statuses os
+        ON
+            c.customer_id = o.customer_id;
+        
+           ');
+
+        
+
+        return $orders;
     }
 
     /**
@@ -65,18 +99,67 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show( Customer $customer)
     {
-        return [
-            'customer_id' => $customer->customer_id,
-            'first_name' => $customer->first_name,
-            'last_name' => $customer->last_name,
-            'gold_member' => $customer->isGoldMember(),
-            'address' => $customer->adress,
-            'city' => $customer->city,
-            'state' => $customer->state,
-            'points' => $customer->points
-        ];
+        // // raw sql šitas i
+        // $order = DB::select('SELECT 
+        // c.customer_id, 
+        //   c.first_name,
+        //   c.last_name,
+        //   c.address,
+        //   c.city,
+        //   c.state,
+        //   c.points,
+        //   o.order_date,
+        //   os.name
+        //   FROM
+        //     sql_store.customers c
+        // JOIN
+        //     sql_store.orders o
+        // JOIN
+        //     sql_store.order_statuses os
+        // ON
+        //     c.customer_id = o.customer_id
+        // WHERE
+        //     c.customer_id = ?
+        
+        // ', [$customer->customer_id]);
+        
+        
+        // return $order;
+
+        //Šitas i laravel query builder
+        $results = DB::table('customers as c')
+            ->join('orders as o', 'c.customer_id', '=', 'o.customer_id')
+            ->join('order_statuses as os', 'o.status', '=', 'os.order_status_id')
+            ->select(
+                'c.customer_id',
+                'c.first_name',
+                'c.last_name',
+                'c.address',
+                'c.city',
+                'c.state',
+                'c.points',
+                'o.order_date',
+                'os.name as order_status_name'
+            )
+            ->where('c.customer_id', '=', [$customer->customer_id]
+            )
+            ->toSql();
+
+            return $results;
+
+
+        // return [
+        //     'customer_id' => $customer->customer_id,
+        //     'first_name' => $customer->first_name,
+        //     'last_name' => $customer->last_name,
+        //     'gold_member' => $customer->isGoldMember(),
+        //     'address' => $customer->adress,
+        //     'city' => $customer->city,
+        //     'state' => $customer->state,
+        //     'points' => $customer->points
+        // ];
        
     }
 

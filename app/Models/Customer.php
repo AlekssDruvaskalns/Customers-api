@@ -24,12 +24,19 @@ class Customer extends Model
 
     ];
 
+    protected $appends = ['is_gold_member'];
+
     protected $primaryKey = 'customer_id';
 
-    public function isGoldMember(){
-    return $this->points > 2000;
-}
+    public function getIsGoldMemberAttribute(){
+        return $this->points > 2000;
+    }
+    
     public  $timestamps = false;
+
+    public function orders(){
+        return $this->hasMany(Order::class, 'customer_id');
+    }
 }
 
 
